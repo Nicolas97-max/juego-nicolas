@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarjeta de Presentación + Juego de Culebrita</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-front: #1e293b;
+      --card-back: #0b1120;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      padding: 1.5rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg-dark) 70%);
+      color: var(--text-main);
+    }
+
+    /* Escena 3D */
+    .scene {
+      width: 100%;
+      max-width: 440px;
+      height: 540px;
+      perspective: 1200px;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+    }
+
+    .card.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cara frontal: Tarjeta de presentación */
+    .card-front {
+      background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+      padding: 2rem;
+      justify-content: space-between;
+    }
+
+    .badge {
+      display: inline-block;
+      width: fit-content;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .profile {
+      margin-top: 1.5rem;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      display: grid;
+      place-items: center;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #052e16;
+      margin-bottom: 1.1rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      line-height: 1.2;
+      margin-bottom: 0.35rem;
+    }
+
+    .role {
+      color: #4ade80;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .bio {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .contact-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 0.85rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: transform 0.15s ease, background-color 0.2s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #052e16;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    /* Cara trasera: Juego de culebrita */
+    .card-back {
+      background: var(--card-back);
+      transform: rotateY(180deg);
+      padding: 1.15rem 1.25rem;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .game-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .score-box {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .score-box span {
+      color: #4ade80;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      padding: 0.45rem 0.8rem;
+      font-size: 0.82rem;
+      border-radius: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #020617;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.82);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay h2 {
+      font-size: 1.25rem;
+    }
+
+    .overlay p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .btn-small {
+      background: var(--accent);
+      color: #052e16;
+      padding: 0.55rem 1rem;
+      font-size: 0.88rem;
+      border-radius: 9px;
+    }
+
+    /* Controles táctiles / ratón */
+    .d-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(2, 38px);
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .dir-btn {
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .dir-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .dir-up { grid-column: 2; grid-row: 1; }
+    .dir-left { grid-column: 1; grid-row: 2; }
+    .dir-down { grid-column: 2; grid-row: 2; }
+    .dir-right { grid-column: 3; grid-row: 2; }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <div class="card" id="card">
+      <!-- CARA FRONTAL -->
+      <section class="card-face card-front" aria-label="Tarjeta de presentación">
+        <div>
+          <span class="badge">Disponible para proyectos</span>
+          <div class="profile">
+            <div class="avatar" aria-hidden="true">AM</div>
+            <h1>NICOLAS GUTIERREZ</h1>
+            <p class="role">Desarrollador Web &amp; Creativo Digital</p>
+            <p class="bio">
+              Construyo interfaces rápidas, limpias y memorables. Gira esta tarjeta para probar un mini juego de culebrita.
+            </p>
+            <ul class="contact-list">
+              <li>✉️ nicolas@ejemplo.dev</li>
+              <li>🌐 nicolas.guty.dev</li>
+              <li>📍 Bogotá, Colombia</li>
+            </ul>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="flipToGameBtn" type="button">
+          Girar y jugar culebrita 🐍
+        </button>
+      </section>
+
+      <!-- CARA TRASERA -->
+      <section class="card-face card-back" aria-label="Juego de culebrita">
+        <div class="game-header">
+          <div class="score-box">
+            Puntos: <span id="score">0</span> · Récord: <span id="bestScore">0</span>
+          </div>
+          <button class="btn btn-secondary" id="flipToCardBtn" type="button">
+            Ver tarjeta ↩
+          </button>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="gameCanvas" width="320" height="320"></canvas>
+          <div class="overlay" id="overlay">
+            <h2 id="overlayTitle">Culebrita</h2>
+            <p id="overlayText">Usa las flechas o WASD para moverte.</p>
+            <button class="btn btn-small" id="startBtn" type="button">Iniciar juego</button>
+          </div>
+        </div>
+
+        <div class="d-pad" aria-label="Controles direccionales">
+          <button class="dir-btn dir-up" data-dir="UP" type="button" aria-label="Arriba">▲</button>
+          <button class="dir-btn dir-left" data-dir="LEFT" type="button" aria-label="Izquierda">◀</button>
+          <button class="dir-btn dir-down" data-dir="DOWN" type="button" aria-label="Abajo">▼</button>
+          <button class="dir-btn dir-right" data-dir="RIGHT" type="button" aria-label="Derecha">▶</button>
+        </div>
+
+        <p class="hint">Flechas / WASD · Espacio para reiniciar</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const card = document.getElementById('card');
+    const flipToGameBtn = document.getElementById('flipToGameBtn');
+    const flipToCardBtn = document.getElementById('flipToCardBtn');
+    const startBtn = document.getElementById('startBtn');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+    const scoreEl = document.getElementById('score');
+    const bestScoreEl = document.getElementById('bestScore');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const gridSize = 16; // 20x20 celdas en un canvas de 320x320
+    const tileCount = canvas.width / gridSize;
+
+    let snake = [];
+    let food = { x: 10, y: 10 };
+    let direction = { x: 1, y: 0 };
+    let nextDirection = { x: 1, y: 0 };
+    let score = 0;
+    let bestScore = Number(localStorage.getItem('snakeBestScore') || 0);
+    let gameLoopId = null;
+    let isRunning = false;
+    let isFlipped = false;
+
+    bestScoreEl.textContent = bestScore;
+
+    function resetGame() {
+      snake = [
+        { x: 6, y: 10 },
+        { x: 5, y: 10 },
+        { x: 4, y: 10 }
+      ];
+      direction = { x: 1, y: 0 };
+      nextDirection = { x: 1, y: 0 };
+      score = 0;
+      scoreEl.textContent = score;
+      spawnFood();
+      draw();
+    }
+
+    function spawnFood() {
+      let candidate;
+      do {
+        candidate = {
+          x: Math.floor(Math.random() * tileCount),
+          y: Math.floor(Math.random() * tileCount)
+        };
+      } while (snake.some(seg => seg.x === candidate.x && seg.y === candidate.y));
+      food = candidate;
+    }
+
+    function startGame() {
+      stopGame();
+      resetGame();
+      isRunning = true;
+      overlay.classList.add('hidden');
+      gameLoopId = setInterval(update, 120);
+    }
+
+    function stopGame() {
+      isRunning = false;
+      if (gameLoopId) {
+        clearInterval(gameLoopId);
+        gameLoopId = null;
+      }
+    }
+
+    function gameOver() {
+      stopGame();
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('snakeBestScore', String(bestScore));
+        bestScoreEl.textContent = bestScore;
+      }
+      overlayTitle.textContent = '¡Juego terminado!';
+      overlayText.textContent = `Puntaje final: ${score}`;
+      startBtn.textContent = 'Jugar de nuevo';
+      overlay.classList.remove('hidden');
+    }
+
+    function update() {
+      direction = { ...nextDirection };
+      const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y
+      };
+
+      // Colisión con bordes
+      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        gameOver();
+        return;
+      }
+
+      // Colisión consigo misma
+      if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        gameOver();
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Comer comida
+      if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreEl.textContent = score;
+        spawnFood();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Cuadrícula sutil
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= tileCount; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * gridSize, 0);
+        ctx.lineTo(i * gridSize, canvas.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i * gridSize);
+        ctx.lineTo(canvas.width, i * gridSize);
+        ctx.stroke();
+      }
+
+      // Comida
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(
+        food.x * gridSize + gridSize / 2,
+        food.y * gridSize + gridSize / 2,
+        gridSize * 0.38,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      // Culebrita
+      snake.forEach((seg, index) => {
+        ctx.fillStyle = index === 0 ? '#4ade80' : '#22c55e';
+        ctx.fillRect(
+          seg.x * gridSize + 1,
+          seg.y * gridSize + 1,
+          gridSize - 2,
+          gridSize - 2
+        );
+      });
+    }
+
+    function setDirection(dir) {
+      if (dir === 'UP' && direction.y !== 1) nextDirection = { x: 0, y: -1 };
+      if (dir === 'DOWN' && direction.y !== -1) nextDirection = { x: 0, y: 1 };
+      if (dir === 'LEFT' && direction.x !== 1) nextDirection = { x: -1, y: 0 };
+      if (dir === 'RIGHT' && direction.x !== -1) nextDirection = { x: 1, y: 0 };
+    }
+
+    flipToGameBtn.addEventListener('click', () => {
+      isFlipped = true;
+      card.classList.add('is-flipped');
+      resetGame();
+      overlayTitle.textContent = 'Culebrita';
+      overlayText.textContent = 'Presiona Iniciar o una flecha para jugar.';
+      startBtn.textContent = 'Iniciar juego';
+      overlay.classList.remove('hidden');
+    });
+
+    flipToCardBtn.addEventListener('click', () => {
+      isFlipped = false;
+      card.classList.remove('is-flipped');
+      stopGame();
+    });
+
+    startBtn.addEventListener('click', startGame);
+
+    document.querySelectorAll('.dir-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!isRunning && isFlipped) startGame();
+        setDirection(btn.dataset.dir);
+      });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (!isFlipped) return;
+
+      const keyMap = {
+        ArrowUp: 'UP',
+        KeyW: 'UP',
+        ArrowDown: 'DOWN',
+        KeyS: 'DOWN',
+        ArrowLeft: 'LEFT',
+        KeyA: 'LEFT',
+        ArrowRight: 'RIGHT',
+        KeyD: 'RIGHT'
+      };
+
+      if (keyMap[e.code]) {
+        e.preventDefault();
+        if (!isRunning) startGame();
+        setDirection(keyMap[e.code]);
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        startGame();
+      }
+    });
+
+    resetGame();
+  </script>
+</body>
+</html>
